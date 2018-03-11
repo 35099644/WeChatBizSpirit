@@ -1,4 +1,4 @@
-package com.wmx.wechatbizhook.Bean;
+package com.wmx.wechatbizhook.bean;
 
 /**
  * Created by wangmingxing on 18-3-9.

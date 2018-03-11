@@ -1,4 +1,4 @@
-package com.wmx.wechatbizhook.Bean;
+package com.wmx.wechatbizhook.bean;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -18,7 +18,6 @@ public class BizInfo {
     public String extInfo;
     public String brandInfo;
     public String nickname;
-    public String openId;
     public BrandInfo.Info[] urls;
 
     public void dump() {
@@ -27,7 +26,6 @@ public class BizInfo {
         LogWriter.i(TAG, "appId:" + appId);
         LogWriter.i(TAG, "extInfo:" + extInfo);
         LogWriter.i(TAG, "brandInfo:" + brandInfo);
-        LogWriter.i(TAG, "openid:" + openId);
     }
 
     public static BizInfo buildBizInfo(Cursor cursor) {
@@ -37,14 +35,14 @@ public class BizInfo {
         bizInfo.extInfo = cursor.getString(cursor.getColumnIndex("extInfo"));
         bizInfo.brandInfo = cursor.getString(cursor.getColumnIndex("brandInfo"));
         bizInfo.nickname = cursor.getString(cursor.getColumnIndex("nickname"));
-        bizInfo.openId = cursor.getString(cursor.getColumnIndex("openId"));
 
         try {
             Gson gson = new Gson();
             BrandInfo info = gson.fromJson(bizInfo.brandInfo, BrandInfo.class);
             bizInfo.urls = info.urls;
-        } catch (JsonSyntaxException e) {
+        } catch (Exception e) {
             LogWriter.e(TAG, e);
+            bizInfo = null;
         }
         return bizInfo;
     }

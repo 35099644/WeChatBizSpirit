@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.telephony.TelephonyManager;
+import android.webkit.WebView;
 
 import com.wmx.wechatbizhook.GlobalConfig;
 
@@ -16,12 +17,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 
+import de.robv.android.xposed.XposedHelpers;
+
 /**
  * Created by wangmingxing on 18-3-7.
  */
 
 public class WeChatUtil {
-    private static final String TAG = "WeChatUtil";
+    private static final String TAG = "BizWeChatUtil";
 
     public static String getUin() {
         SharedPreferences sp = GlobalConfig.mAppContext.getSharedPreferences("auth_info_key_prefs", Context.MODE_PRIVATE);
@@ -122,6 +125,7 @@ public class WeChatUtil {
         try {
             Class webviewUIClass = classLoader.loadClass("com.tencent.mm.plugin.webview.ui.tools.WebViewUI");
             Intent intent = new Intent(context, webviewUIClass);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.putExtra("rawUrl", url);
             context.startActivity(intent);
         } catch (ClassNotFoundException e) {

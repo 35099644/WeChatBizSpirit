@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/WeChatBizHook.iml" filepath="$PROJECT_DIR$/WeChatBizHook.iml" />
+      <module fileurl="file://$PROJECT_DIR$/WeChatBizSpirit.iml" filepath="$PROJECT_DIR$/WeChatBizSpirit.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/wcdb/wcdb.iml" filepath="$PROJECT_DIR$/wcdb/wcdb.iml" />
     </modules>

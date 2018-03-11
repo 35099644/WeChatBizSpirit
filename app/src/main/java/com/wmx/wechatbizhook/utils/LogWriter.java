@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 import com.wmx.wechatbizhook.GlobalConfig;
@@ -39,11 +38,6 @@ public class LogWriter {
 
     private static void writeLog(final String msg) {
         if (!GlobalConfig.sRecordLog) {
-            return;
-        }
-
-        if (ContextCompat.checkSelfPermission(GlobalConfig.mAppContext,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
