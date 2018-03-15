@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.telephony.TelephonyManager;
-import android.webkit.WebView;
+import android.webkit.CookieManager;
 
 import com.wmx.wechatbizhook.GlobalConfig;
 
@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-
-import de.robv.android.xposed.XposedHelpers;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by wangmingxing on 18-3-7.
@@ -131,5 +131,25 @@ public class WeChatUtil {
         } catch (ClassNotFoundException e) {
             LogWriter.e(TAG, "startWebViewUI", e);
         }
+    }
+
+    public static String getCookie() {
+        CookieManager cookieManager = CookieManager.getInstance();
+        return cookieManager.getCookie("https://mp.weixin.qq.com");
+    }
+
+    public static Map<String, String> getCookieMap() {
+        Map<String, String> cookieMap = new HashMap();
+        String[] kvStrs = getCookie().trim().split(";");
+        for (String kvStr : kvStrs) {
+            String[] kv = kvStr.trim().split("=");
+            cookieMap.put(kv[0], kv.length == 2 ? kv[1] : "");
+        }
+        return cookieMap;
+    }
+
+    public static String getCookie(String key) {
+        Map<String, String> cookieMap = getCookieMap();
+        return cookieMap.get(key);
     }
 }

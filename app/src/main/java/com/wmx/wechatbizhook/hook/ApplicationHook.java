@@ -5,8 +5,10 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Process;
 
+import com.android.volley.toolbox.Volley;
 import com.wmx.wechatbizhook.GlobalConfig;
 import com.wmx.wechatbizhook.bean.BizInfo;
 import com.wmx.wechatbizhook.utils.LogWriter;
@@ -17,8 +19,6 @@ import net.sqlcipher.database.SQLiteDatabase;
 import net.sqlcipher.database.SQLiteDatabaseHook;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -31,9 +31,7 @@ import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 
 public class ApplicationHook extends BaseHook {
     private static final String TAG = "BizApplicationHook";
-    private List<BizInfo> mBizInfos = new ArrayList();
-    private static final int BIZ_HOME_LUNCH_INTERVAL = 10000;
-    private int mCurrentBizIndex;
+    private static final int BIZ_HOME_LUNCH_INTERVAL = 5000;
 
     public ApplicationHook(XC_LoadPackage.LoadPackageParam lpparam) {
         super(lpparam);
@@ -55,9 +53,14 @@ public class ApplicationHook extends BaseHook {
                 LogWriter.i(TAG, "After Application.onCreate");
                 setDefaultCrashHandler();
                 GlobalConfig.mAppContext = (Context) param.thisObject;
-                if (GlobalConfig.mIsMainProcess) {
-                    dumpBizTable();
-                }
+                GlobalConfig.mRequestQueue = Volley.newRequestQueue(GlobalConfig.mAppContext);
+                GlobalConfig.mRequestQueue.start();
+
+                HandlerThread thread = new HandlerThread(
+                        "biz_article_capture_thread", Process.THREAD_PRIORITY_BACKGROUND);
+                thread.start();
+                GlobalConfig.mArticleCaptureHandler = new Handler(thread.getLooper());
+                dumpBizTable();
             }
         });
     }
@@ -91,34 +94,36 @@ public class ApplicationHook extends BaseHook {
                     while (cursor.moveToNext()) {
                         BizInfo bizInfo = BizInfo.buildBizInfo(cursor);
                         if (bizInfo != null) {
-                            bizInfo.dump();
-                            mBizInfos.add(bizInfo);
+                            //bizInfo.dump();
+                            GlobalConfig.mBizInfos.add(bizInfo);
                         }
                     }
+
                     cursor.close();
                     db.close();
-                    startCaptureBizArticle();
+
+                    // 先从主进程调起第一个公众号的首页，然后在tools进程抓取数据
+                    if (GlobalConfig.mIsMainProcess) {
+                        startCapturBizArticle();
+                    }
                 }
             }
         }).start();
     }
 
-    private Runnable mLunchBizHomeRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (mCurrentBizIndex == mBizInfos.size()) {
-                return;
+    private void startCapturBizArticle() {
+        GlobalConfig.mUIThreadHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (GlobalConfig.mBizInfos.size() == 0) {
+                    return;
+                }
+
+                String url = GlobalConfig.mBizInfos.get(0).urls[0].url;
+                LogWriter.i(TAG, "startWebViewUI url=" + url);
+                WeChatUtil.startWebViewUI(GlobalConfig.mAppContext, url);
             }
-
-            String url = mBizInfos.get(mCurrentBizIndex++).urls[0].url;
-            LogWriter.i(TAG, "startWebViewUI url=" + url);
-            WeChatUtil.startWebViewUI(GlobalConfig.mAppContext, url);
-            GlobalConfig.mUIThreadHandler.postDelayed(mLunchBizHomeRunnable, BIZ_HOME_LUNCH_INTERVAL);
-        }
-    };
-
-    private void startCaptureBizArticle() {
-        GlobalConfig.mUIThreadHandler.postDelayed(mLunchBizHomeRunnable, BIZ_HOME_LUNCH_INTERVAL);
+        }, BIZ_HOME_LUNCH_INTERVAL);
     }
 
     private void setDefaultCrashHandler() {
@@ -155,5 +160,10 @@ public class ApplicationHook extends BaseHook {
         File destDb = new File(dir, "EnMicroMsg.db");
         WeChatUtil.copyFile(srcDb, destDb);
         return destDb;
+    }
+
+    private void dumpCookie() {
+        String cookie = WeChatUtil.getCookie();
+        LogWriter.i(TAG, "cookie:" + cookie);
     }
 }

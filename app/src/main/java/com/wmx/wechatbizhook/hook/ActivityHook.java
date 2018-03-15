@@ -35,15 +35,26 @@ public class ActivityHook extends BaseHook {
                 }
 
                 if (param.thisObject.getClass().getSimpleName().equals("WebViewUI")) {
-                    GlobalConfig.mUIThreadHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            dumpCookie();
-                        }
-                    }, 5000);
                 }
             }
         });
+
+        findAndHookMethod("android.app.Activity",
+                mLoadPackageParam.classLoader,
+                "onStop",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        LogWriter.i(TAG, "onStop:" + param.thisObject);
+                        if (param.thisObject.getClass().getSimpleName().equals("LauncherUI")) {
+                            return;
+                        }
+
+                        if (param.thisObject.getClass().getSimpleName().equals("WebViewUI")) {
+                        }
+                    }
+                });
+
     }
 
     private void dumpCookie() {

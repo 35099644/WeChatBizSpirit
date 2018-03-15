@@ -1,10 +1,9 @@
 package com.wmx.wechatbizhook;
 
-import android.webkit.WebView;
-
 import com.wmx.wechatbizhook.hook.ActivityHook;
 import com.wmx.wechatbizhook.hook.ApplicationHook;
 import com.wmx.wechatbizhook.hook.LogHook;
+import com.wmx.wechatbizhook.hook.WebViewClientHook;
 import com.wmx.wechatbizhook.hook.WebViewHook;
 import com.wmx.wechatbizhook.utils.LogWriter;
 import com.wmx.wechatbizhook.utils.WeChatUtil;
@@ -36,7 +35,8 @@ public class BizHookEntry implements IXposedHookLoadPackage {
         LogWriter.i(TAG, "Loaded app:" + lpparam.processName);
         new ApplicationHook(lpparam).hook();
         new ActivityHook(lpparam).hook();
-        new LogHook(lpparam).hook();
-        new WebViewHook(lpparam).hook();
+        //new LogHook(lpparam).hook();
+        //new WebViewHook(lpparam).hook();
+        new WebViewClientHook(lpparam).hook();
     }
 }
